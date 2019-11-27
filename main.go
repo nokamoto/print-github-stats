@@ -1,5 +1,7 @@
 package main
 
-func main() {
+import "github.com/nokamoto/print-github-stats/cmd"
 
+func main() {
+	cmd.Execute()
 }
