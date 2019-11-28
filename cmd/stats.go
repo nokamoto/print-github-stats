@@ -4,23 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/go-github/v28/github"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/google/go-github/v28/github"
 	"net/url"
 	"time"
 )
 
 const (
 	startKey = "start-date"
-	endKey = "end-date"
+	endKey   = "end-date"
 )
 
-var statsCmd =  &cobra.Command{
+var statsCmd = &cobra.Command{
 	Use:   "stats",
 	Short: "Prints contributions to a github repository",
-	Long: `Prints contributions to a github repository.`,
-	Run: stats,
+	Long:  `Prints contributions to a github repository.`,
+	Run:   stats,
 }
 
 func init() {
@@ -61,9 +61,9 @@ func listRepos(ctx context.Context, client *github.Client, org string) []*github
 
 type PullRequestState struct {
 	Repository Repository
-	Pull *github.PullRequest
-	Reviews []*github.PullRequestReview
-	Comments []*github.PullRequestComment
+	Pull       *github.PullRequest
+	Reviews    []*github.PullRequestReview
+	Comments   []*github.PullRequestComment
 }
 
 func listReviews(ctx context.Context, client *github.Client, org string, repo string, num int) []*github.PullRequestReview {
@@ -132,9 +132,9 @@ func describePull(ctx context.Context, client *github.Client, org string, repo s
 
 	return PullRequestState{
 		Repository: Repository(repo),
-		Pull: result,
-		Reviews: reviews,
-		Comments: comments,
+		Pull:       result,
+		Reviews:    reviews,
+		Comments:   comments,
 	}
 }
 
@@ -142,7 +142,7 @@ func listPulls(ctx context.Context, client *github.Client, org string, repo stri
 	var pulls []PullRequestState
 
 	opts := &github.PullRequestListOptions{
-		State: "all",
+		State:       "all",
 		ListOptions: github.ListOptions{PerPage: 30},
 	}
 
