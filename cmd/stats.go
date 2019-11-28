@@ -11,6 +11,9 @@ import (
 )
 
 const (
+	debugKey  = "debug"
+	urlKey    = "url"
+	orgKey    = "org"
 	startKey  = "start-date"
 	endKey    = "end-date"
 	outputKey = "output"
@@ -31,6 +34,18 @@ var statsCmd = &cobra.Command{
 
 func init() {
 	flags := statsCmd.Flags()
+
+	flags.String(urlKey, "https://<enterprise>/api/v3/", `github api url
+https://developer.github.com/v3
+https://developer.github.com/enterprise/2.19/v3/enterprise-admin
+`)
+	viper.BindPFlag(urlKey, flags.Lookup(urlKey))
+
+	flags.String(orgKey, "<org>", `github organization`)
+	viper.BindPFlag(orgKey, flags.Lookup(orgKey))
+
+	flags.Bool(debugKey, false, "debug mode")
+	viper.BindPFlag(debugKey, flags.Lookup(debugKey))
 
 	now := time.Now()
 	flags.String(endKey, fmt.Sprintf("%d-%2d-%2d", now.Year(), now.Month(), now.Day()), `retrieves pull requests created before the date`)
@@ -103,6 +118,8 @@ func listReviews(ctx context.Context, client *github.Client, org string, repo st
 
 		debug("%v", res)
 
+		debug("%d review(s)", len(result))
+
 		reviews = append(reviews, result...)
 
 		if res.NextPage == 0 {
@@ -131,6 +148,8 @@ func listComments(ctx context.Context, client *github.Client, org string, repo s
 
 		debug("%v", res)
 
+		debug("%d comment(s)", len(result))
+
 		comments = append(comments, result...)
 
 		if res.NextPage == 0 {
@@ -151,8 +170,6 @@ func describePull(ctx context.Context, client *github.Client, org string, repo s
 	}
 
 	debug("%v", *res)
-
-	debug("%d %d %d", result.GetDeletions(), result.GetAdditions(), result.GetMerged())
 
 	reviews := listReviews(ctx, client, org, repo, num)
 
@@ -186,6 +203,8 @@ func listPulls(ctx context.Context, client *github.Client, org string, repo stri
 
 		out := false
 		for _, pull := range result {
+			debug("#%d created at %v", pull.GetNumber(), pull.GetCreatedAt())
+
 			if pull.GetCreatedAt().Before(st) {
 				out = true
 				break
