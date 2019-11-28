@@ -14,6 +14,7 @@ const (
 	startKey  = "start-date"
 	endKey    = "end-date"
 	outputKey = "output"
+	sleepKey  = "sleep"
 )
 
 const (
@@ -41,6 +42,10 @@ func init() {
 
 	flags.StringP(outputKey, "o", "json", `Output format: json or csv`)
 	viper.BindPFlag(outputKey, flags.Lookup(outputKey))
+
+	flags.String(sleepKey, "1s", `Adds the delay between HTTP requests
+https://golang.org/pkg/time/#ParseDuration`)
+	viper.BindPFlag(sleepKey, flags.Lookup(sleepKey))
 }
 
 func listRepos(ctx context.Context, client *github.Client, org string) []*github.Repository {
@@ -74,12 +79,23 @@ type PullRequestState struct {
 	Comments   []*github.PullRequestComment
 }
 
+func sleep() {
+	d, err := time.ParseDuration(viper.GetString(sleepKey))
+	if err != nil {
+		fatal("invalid duration: %v", err)
+	}
+
+	time.Sleep(d)
+}
+
 func listReviews(ctx context.Context, client *github.Client, org string, repo string, num int) []*github.PullRequestReview {
 	opts := &github.ListOptions{
 		PerPage: 30,
 	}
 	var reviews []*github.PullRequestReview
 	for {
+		sleep()
+
 		result, res, err := client.PullRequests.ListReviews(ctx, org, repo, num, opts)
 		if err != nil {
 			fatal("failed: %v", err)
@@ -106,6 +122,8 @@ func listComments(ctx context.Context, client *github.Client, org string, repo s
 	}
 	var comments []*github.PullRequestComment
 	for {
+		sleep()
+
 		result, res, err := client.PullRequests.ListComments(ctx, org, repo, num, opts)
 		if err != nil {
 			fatal("failed: %v", err)
@@ -125,6 +143,8 @@ func listComments(ctx context.Context, client *github.Client, org string, repo s
 }
 
 func describePull(ctx context.Context, client *github.Client, org string, repo string, num int) PullRequestState {
+	sleep()
+
 	result, res, err := client.PullRequests.Get(ctx, org, repo, num)
 	if err != nil {
 		fatal("failed: %v", err)
@@ -155,6 +175,8 @@ func listPulls(ctx context.Context, client *github.Client, org string, repo stri
 	}
 
 	for {
+		sleep()
+
 		result, res, err := client.PullRequests.List(ctx, org, repo, opts)
 		if err != nil {
 			fatal("failed: %v", err)
