@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/google/go-github/v28/github"
 	"github.com/spf13/cobra"
@@ -12,8 +11,14 @@ import (
 )
 
 const (
-	startKey = "start-date"
-	endKey   = "end-date"
+	startKey  = "start-date"
+	endKey    = "end-date"
+	outputKey = "output"
+)
+
+const (
+	jsonValue = "json"
+	csvValue  = "csv"
 )
 
 var statsCmd = &cobra.Command{
@@ -33,6 +38,9 @@ func init() {
 	now = now.AddDate(0, -1, 0)
 	flags.String(startKey, fmt.Sprintf("%d-%2d-%2d", now.Year(), now.Month(), now.Day()), `retrieves pull requests created after the date`)
 	viper.BindPFlag(startKey, flags.Lookup(startKey))
+
+	flags.StringP(outputKey, "o", "json", `Output format: json or csv`)
+	viper.BindPFlag(outputKey, flags.Lookup(outputKey))
 }
 
 func listRepos(ctx context.Context, client *github.Client, org string) []*github.Repository {
@@ -186,6 +194,7 @@ func stats(_ *cobra.Command, _ []string) {
 	org := viper.GetString(orgKey)
 	start := viper.GetString(startKey)
 	end := viper.GetString(endKey)
+	output := viper.GetString(outputKey)
 
 	layout := "2006-01-02"
 	st, err := time.Parse(layout, start)
@@ -200,6 +209,10 @@ func stats(_ *cobra.Command, _ []string) {
 
 	if st.After(et) {
 		fatal("start %v >= end %v", st, et)
+	}
+
+	if output != jsonValue && output != csvValue {
+		fatal("invalid output: %s", output)
 	}
 
 	ctx := context.Background()
@@ -234,10 +247,10 @@ func stats(_ *cobra.Command, _ []string) {
 		}
 	}
 
-	data, err := json.Marshal(contributors)
-	if err != nil {
-		fatal("failed: %v", err)
+	switch output {
+	case jsonValue:
+		contributors.printJSON()
+	case csvValue:
+		contributors.printCSV()
 	}
-
-	fmt.Println(string(data))
 }
