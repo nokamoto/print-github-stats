@@ -63,18 +63,10 @@ type PullRequestState struct {
 	Repository Repository
 	Pull *github.PullRequest
 	Reviews []*github.PullRequestReview
+	Comments []*github.PullRequestComment
 }
 
-func describePull(ctx context.Context, client *github.Client, org string, repo string, num int) PullRequestState {
-	result, res, err := client.PullRequests.Get(ctx, org, repo, num)
-	if err != nil {
-		fatal("failed: %v", err)
-	}
-
-	debug("%v", *res)
-
-	debug("%d %d %d", result.GetDeletions(), result.GetAdditions(), result.GetMerged())
-
+func listReviews(ctx context.Context, client *github.Client, org string, repo string, num int) []*github.PullRequestReview {
 	opts := &github.ListOptions{
 		PerPage: 30,
 	}
@@ -95,11 +87,54 @@ func describePull(ctx context.Context, client *github.Client, org string, repo s
 
 		opts.Page = res.NextPage
 	}
+	return reviews
+}
+
+func listComments(ctx context.Context, client *github.Client, org string, repo string, num int) []*github.PullRequestComment {
+	opts := &github.PullRequestListCommentsOptions{
+		ListOptions: github.ListOptions{
+			PerPage: 30,
+		},
+	}
+	var comments []*github.PullRequestComment
+	for {
+		result, res, err := client.PullRequests.ListComments(ctx, org, repo, num, opts)
+		if err != nil {
+			fatal("failed: %v", err)
+		}
+
+		debug("%v", res)
+
+		comments = append(comments, result...)
+
+		if res.NextPage == 0 {
+			break
+		}
+
+		opts.Page = res.NextPage
+	}
+	return comments
+}
+
+func describePull(ctx context.Context, client *github.Client, org string, repo string, num int) PullRequestState {
+	result, res, err := client.PullRequests.Get(ctx, org, repo, num)
+	if err != nil {
+		fatal("failed: %v", err)
+	}
+
+	debug("%v", *res)
+
+	debug("%d %d %d", result.GetDeletions(), result.GetAdditions(), result.GetMerged())
+
+	reviews := listReviews(ctx, client, org, repo, num)
+
+	comments := listComments(ctx, client, org, repo, num)
 
 	return PullRequestState{
 		Repository: Repository(repo),
 		Pull: result,
 		Reviews: reviews,
+		Comments: comments,
 	}
 }
 
