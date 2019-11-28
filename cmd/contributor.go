@@ -101,6 +101,8 @@ func (cs *Contributors) stats(pull PullRequestState) {
 	}
 
 	for who := range approvedUniq {
+		debug("%s approve %s#%d", who, pull.Repository, pull.Pull.GetNumber())
+
 		cs.contributor(who).contribution(pull.Repository).Approve += 1
 	}
 
