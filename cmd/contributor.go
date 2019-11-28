@@ -9,6 +9,7 @@ type Contribution struct {
 	MergedDeletions int
 	MergedAdditions int
 	Reviews int
+	Comments int
 }
 
 type Contributor struct {
@@ -70,5 +71,10 @@ func (cs *Contributors) stats(pull PullRequestState) {
 
 	for who := range approvedUniq {
 		cs.contributor(who).contribution(pull.Repository).Approve += 1
+	}
+
+	for _, comment := range pull.Comments {
+		who := comment.GetUser().GetLogin()
+		cs.contributor(who).contribution(pull.Repository).Comments += 1
 	}
 }
