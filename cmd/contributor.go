@@ -23,7 +23,6 @@ type Contribution struct {
 type Contributor struct {
 	Name          string
 	Contributions map[Repository]*Contribution
-	Summary       *Contribution
 }
 
 type Contributors struct {
@@ -61,21 +60,8 @@ func (c *Contributor) contribution(repo Repository) *Contribution {
 
 	cb := &Contribution{}
 	c.Contributions[repo] = cb
-	c.Summary = new(Contribution)
 
 	return cb
-}
-
-func (c *Contributor) summarize() {
-	for _, cb := range c.Contributions {
-		c.Summary.Approve += cb.Approve
-		c.Summary.Deletions += cb.Deletions
-		c.Summary.Additions += cb.Additions
-		c.Summary.MergedDeletions += cb.MergedDeletions
-		c.Summary.MergedAdditions += cb.MergedAdditions
-		c.Summary.Comments += cb.Comments
-		c.Summary.Reviews += cb.Reviews
-	}
 }
 
 func (cs *Contributors) contributor(name string) *Contributor {
@@ -122,10 +108,6 @@ func (cs *Contributors) stats(pull PullRequestState) {
 		who := comment.GetUser().GetLogin()
 		cs.contributor(who).contribution(pull.Repository).Comments += 1
 	}
-
-	for _, c := range cs.Contributors {
-		c.summarize()
-	}
 }
 
 func (cs *Contributors) printJSON() {
@@ -170,9 +152,7 @@ func (cs *Contributors) printCSV() {
 		}
 
 		for repo, cb := range c.Contributions {
-			write(append(prefix(fmt.Sprintf("repos/%s", repo)), cb.slice()...))
+			write(append(prefix(string(repo)), cb.slice()...))
 		}
-
-		write(append(prefix("summary"), c.Summary.slice()...))
 	}
 }
