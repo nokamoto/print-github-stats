@@ -11,6 +11,7 @@ import (
 type Repository string
 
 type Contribution struct {
+	Pulls           int
 	Approve         int
 	Deletions       int
 	Additions       int
@@ -34,6 +35,7 @@ type Contributors struct {
 
 func (c *Contribution) slice() []string {
 	values := []int{
+		c.Pulls,
 		c.Approve,
 		c.Deletions,
 		c.Additions,
@@ -81,6 +83,10 @@ func (cs *Contributors) stats(pull PullRequestState) {
 	author := pull.Pull.GetUser().GetLogin()
 	authorContribution := cs.contributor(author).contribution(pull.Repository)
 
+	debug("%s pulls %s#%d", author, pull.Repository, pull.Pull.GetNumber())
+
+	authorContribution.Pulls += 1
+
 	if pull.Pull.GetMerged() {
 		authorContribution.MergedAdditions += pull.Pull.GetAdditions()
 		authorContribution.MergedDeletions += pull.Pull.GetDeletions()
@@ -127,6 +133,7 @@ func (cs *Contributors) printCSV() {
 		"Type",
 		"Start",
 		"End",
+		"Pulls",
 		"Approve",
 		"Deletions",
 		"Additions",
