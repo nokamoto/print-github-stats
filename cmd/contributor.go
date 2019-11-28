@@ -1,6 +1,12 @@
 package cmd
 
-import "time"
+import (
+	"encoding/csv"
+	"encoding/json"
+	"fmt"
+	"os"
+	"time"
+)
 
 type Repository string
 
@@ -25,6 +31,26 @@ type Contributors struct {
 	Start        time.Time
 	End          time.Time
 	Contributors []*Contributor
+}
+
+func (c *Contribution) slice() []string {
+	values := []int{
+		c.Approve,
+		c.Deletions,
+		c.Additions,
+		c.MergedDeletions,
+		c.MergedAdditions,
+		c.Reviews,
+		c.Comments,
+	}
+
+	var s []string
+
+	for _, v := range values {
+		s = append(s, fmt.Sprintf("%d", v))
+	}
+
+	return s
 }
 
 func (c *Contributor) contribution(repo Repository) *Contribution {
@@ -99,5 +125,54 @@ func (cs *Contributors) stats(pull PullRequestState) {
 
 	for _, c := range cs.Contributors {
 		c.summarize()
+	}
+}
+
+func (cs *Contributors) printJSON() {
+	data, err := json.Marshal(cs)
+	if err != nil {
+		fatal("failed: %v", err)
+	}
+
+	fmt.Println(string(data))
+}
+
+func (cs *Contributors) printCSV() {
+	header := []string{
+		"Contributor",
+		"Type",
+		"Start",
+		"End",
+		"Approve",
+		"Deletions",
+		"Additions",
+		"MergedDeletions",
+		"MergedAdditions",
+		"Reviews",
+		"Comments",
+	}
+
+	w := csv.NewWriter(os.Stdout)
+
+	write := func(s []string) {
+		err := w.Write(s)
+		if err != nil {
+			fatal("failed: %v", err)
+		}
+		w.Flush()
+	}
+
+	write(header)
+
+	for _, c := range cs.Contributors {
+		prefix := func(typ string) []string {
+			return []string{c.Name, typ, fmt.Sprintf("%v", cs.Start), fmt.Sprintf("%v", cs.End)}
+		}
+
+		for repo, cb := range c.Contributions {
+			write(append(prefix(fmt.Sprintf("repos/%s", repo)), cb.slice()...))
+		}
+
+		write(append(prefix("summary"), c.Summary.slice()...))
 	}
 }
