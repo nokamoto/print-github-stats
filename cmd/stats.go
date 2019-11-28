@@ -218,7 +218,11 @@ func stats(_ *cobra.Command, _ []string) {
 
 	repos := listRepos(ctx, client, org)
 
-	contributors := &Contributors{}
+	contributors := &Contributors{
+		Org:   org,
+		Start: st,
+		End:   et,
+	}
 
 	for _, repo := range repos {
 		debug("GET /repos/%s/%s/pulls (from %s to %s)", org, *repo.Name, start, end)
