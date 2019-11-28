@@ -274,8 +274,8 @@ func stats(_ *cobra.Command, _ []string) {
 
 	contributors := &Contributors{
 		Org:   org,
-		Start: st,
-		End:   et,
+		Start: start,
+		End:   end,
 	}
 
 	for _, repo := range repos {

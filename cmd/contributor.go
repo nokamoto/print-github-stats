@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 )
 
 type Repository string
@@ -28,8 +27,8 @@ type Contributor struct {
 
 type Contributors struct {
 	Org          string
-	Start        time.Time
-	End          time.Time
+	Start        string
+	End          string
 	Contributors []*Contributor
 }
 
