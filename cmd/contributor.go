@@ -1,5 +1,7 @@
 package cmd
 
+import "time"
+
 type Repository string
 
 type Contribution struct {
@@ -15,9 +17,13 @@ type Contribution struct {
 type Contributor struct {
 	Name          string
 	Contributions map[Repository]*Contribution
+	Summary       *Contribution
 }
 
 type Contributors struct {
+	Org          string
+	Start        time.Time
+	End          time.Time
 	Contributors []*Contributor
 }
 
@@ -29,8 +35,21 @@ func (c *Contributor) contribution(repo Repository) *Contribution {
 
 	cb := &Contribution{}
 	c.Contributions[repo] = cb
+	c.Summary = new(Contribution)
 
 	return cb
+}
+
+func (c *Contributor) summarize() {
+	for _, cb := range c.Contributions {
+		c.Summary.Approve += cb.Approve
+		c.Summary.Deletions += cb.Deletions
+		c.Summary.Additions += cb.Additions
+		c.Summary.MergedDeletions += cb.MergedDeletions
+		c.Summary.MergedAdditions += cb.MergedAdditions
+		c.Summary.Comments += cb.Comments
+		c.Summary.Reviews += cb.Reviews
+	}
 }
 
 func (cs *Contributors) contributor(name string) *Contributor {
@@ -76,5 +95,9 @@ func (cs *Contributors) stats(pull PullRequestState) {
 	for _, comment := range pull.Comments {
 		who := comment.GetUser().GetLogin()
 		cs.contributor(who).contribution(pull.Repository).Comments += 1
+	}
+
+	for _, c := range cs.Contributors {
+		c.summarize()
 	}
 }
