@@ -3,18 +3,18 @@ package cmd
 type Repository string
 
 type Contribution struct {
-	Approve int
-	Deletions int
-	Additions int
+	Approve         int
+	Deletions       int
+	Additions       int
 	MergedDeletions int
 	MergedAdditions int
-	Reviews int
-	Comments int
+	Reviews         int
+	Comments        int
 }
 
 type Contributor struct {
-	Name string
-	Contributions map[Repository] *Contribution
+	Name          string
+	Contributions map[Repository]*Contribution
 }
 
 type Contributors struct {
@@ -40,7 +40,7 @@ func (cs *Contributors) contributor(name string) *Contributor {
 		}
 	}
 
-	c := &Contributor{Name: name, Contributions: make(map[Repository] *Contribution)}
+	c := &Contributor{Name: name, Contributions: make(map[Repository]*Contribution)}
 	cs.Contributors = append(cs.Contributors, c)
 
 	return c

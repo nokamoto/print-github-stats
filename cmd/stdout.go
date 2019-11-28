@@ -8,11 +8,11 @@ import (
 
 func debug(s string, args ...interface{}) {
 	if viper.GetBool(debugKey) {
-		fmt.Printf("[debug] " + s + "\n", args...)
+		fmt.Printf("[debug] "+s+"\n", args...)
 	}
 }
 
 func fatal(s string, args ...interface{}) {
-	fmt.Printf(s + "\n", args...)
+	fmt.Printf(s+"\n", args...)
 	os.Exit(1)
 }

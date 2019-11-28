@@ -8,7 +8,7 @@ import (
 )
 
 type Version struct {
-	Hash string `json:"hash"`
+	Hash      string `json:"hash"`
 	Timestamp string `json:"timestamp"`
 }
 
@@ -17,9 +17,9 @@ var BuildTimeVersion Version
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Prints version",
-	Long: `Prints version.`,
-	Run: version,
-	Args: cobra.NoArgs,
+	Long:  `Prints version.`,
+	Run:   version,
+	Args:  cobra.NoArgs,
 }
 
 func version(_ *cobra.Command, _ []string) {
