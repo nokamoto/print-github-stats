@@ -209,12 +209,9 @@ func listPulls(ctx context.Context, client *github.Client, org string, repo stri
 				out = true
 				break
 			}
-			if pull.GetCreatedAt().After(et) {
-				// ignore
-				break
+			if pull.GetCreatedAt().Before(et) {
+				pulls = append(pulls, describePull(ctx, client, org, repo, pull.GetNumber()))
 			}
-
-			pulls = append(pulls, describePull(ctx, client, org, repo, pull.GetNumber()))
 		}
 		if out {
 			break
