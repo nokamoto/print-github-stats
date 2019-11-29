@@ -204,15 +204,15 @@ func listPulls(ctx context.Context, client *github.Client, org string, repo stri
 		out := false
 		for _, pull := range result {
 			if pull.GetCreatedAt().Before(st) {
-				debug("break: #%d created at %v", pull.GetNumber(), pull.GetCreatedAt())
+				debug("break: %s/#%d created at %v", repo, pull.GetNumber(), pull.GetCreatedAt())
 				out = true
 				break
 			}
 			if pull.GetCreatedAt().Before(et) {
-				debug("#%d created at %v", pull.GetNumber(), pull.GetCreatedAt())
+				debug("%s/#%d created at %v", repo, pull.GetNumber(), pull.GetCreatedAt())
 				pulls = append(pulls, describePull(ctx, client, org, repo, pull.GetNumber()))
 			} else {
-				debug("skip: #%d created at %v", pull.GetNumber(), pull.GetCreatedAt())
+				debug("skip: %s/#%d created at %v", repo, pull.GetNumber(), pull.GetCreatedAt())
 			}
 		}
 		if out {
